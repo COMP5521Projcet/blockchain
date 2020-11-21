@@ -4,9 +4,11 @@ import com.fan.blockchain.block.Block;
 import com.fan.blockchain.block.Blockchain;
 import com.fan.blockchain.pow.ProofOfWork;
 import com.fan.blockchain.util.RocksDBUtils;
+import org.junit.Test;
 import org.rocksdb.RocksDBException;
 
 public class BlockchainTest {
+    private static RocksDBUtils dbUtils = RocksDBUtils.getInstance();
     public static void main(String[] args) {
         Blockchain blockchain = null;
         try {
@@ -23,6 +25,15 @@ public class BlockchainTest {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testStore() {
+        Block lastBlock = dbUtils.getBlock(dbUtils.getLastBlockHash());
+        while (lastBlock != null){
+            System.out.println(lastBlock.toString());
+            lastBlock = dbUtils.getBlock(lastBlock.getPreviousHash());
         }
     }
 }
