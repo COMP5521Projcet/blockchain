@@ -5,7 +5,6 @@ import com.fan.blockchain.util.ByteUtils;
 import lombok.Data;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.omg.Messaging.SyncScopeHelper;
 
 import java.math.BigInteger;
 

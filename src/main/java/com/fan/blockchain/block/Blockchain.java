@@ -17,7 +17,7 @@ public class Blockchain {
         this.lastBlockHash = lastBlockHash;
     }
 
-    public static Blockchain newBlockchain() throws RocksDBException {
+    public static Blockchain newBlockchain() {
         String lastBlockHash = RocksDBUtils.getInstance().getLastBlockHash();
         if (StringUtils.isBlank(lastBlockHash)){
             Block genesisBlock = Block.newGenesisBlock();
@@ -50,7 +50,7 @@ public class Blockchain {
             this.currentBlockHash = currentBlockHash;
         }
 
-        public boolean hashNext() throws RocksDBException {
+        public boolean hashNext() {
             if (ByteUtils.ZERO_HASH.equals(currentBlockHash)){
                 return false;
             }
@@ -65,7 +65,7 @@ public class Blockchain {
             return RocksDBUtils.getInstance().getBlock(lastBlock.getPreviousHash()) != null;
         }
 
-        public Block next() throws RocksDBException {
+        public Block next() {
             Block currentBlock = RocksDBUtils.getInstance().getBlock(currentBlockHash);
             if (currentBlock != null) {
                 this.currentBlockHash = currentBlock.getPreviousHash();
