@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 
 import java.util.Map;
 
+
 /**
  * RocksDB 工具类
  */
@@ -59,7 +60,7 @@ public class RocksDBUtils {
             byte[] blockBucketKey = SerializeUtils.serialize(BLOCKS_BUCKET_KEY);
             byte[] blockBucketBytes = db.get(blockBucketKey);
             if (blockBucketBytes != null) {
-                blockBucket = (Map)SerializeUtils.deserialize(blockBucketBytes);
+                blockBucket = (Map) SerializeUtils.deserialize(blockBucketBytes);
             } else {
                 blockBucket = Maps.newHashMap();
                 db.put(blockBucketKey,SerializeUtils.serialize(blockBucket));

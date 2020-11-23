@@ -3,9 +3,11 @@ package com.fan.blockchain.cli;
 import com.fan.blockchain.block.Block;
 import com.fan.blockchain.block.Blockchain;
 import com.fan.blockchain.pow.ProofOfWork;
+import com.fan.blockchain.transaction.TXOutput;
+import com.fan.blockchain.transaction.Transaction;
 import com.fan.blockchain.util.RocksDBUtils;
 import org.apache.commons.cli.*;
-import org.rocksdb.RocksDBException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * 程序命令行工具入口
@@ -16,9 +18,18 @@ public class CLI {
 
     public CLI(String[] args) {
         this.args = args;
-        options.addOption("h","help",false,"show help");
-        options.addOption("add","addblock",true,"add a block to the blockchain");
-        options.addOption("print","printchain",false,"print all the blocks of the blockchain");
+        Option helpCmd = Option.builder("h").desc("show help").build();
+        options.addOption(helpCmd);
+
+        Option address = Option.builder("address").hasArg(true).desc("Source wallet address").build();
+        Option sendFrom = Option.builder("from").hasArg(true).desc("Source wallet address").build();
+        Option sendTo = Option.builder("to").hasArg(true).desc("Destination wallet address").build();
+        Option sendAmount = Option.builder("amount").hasArg(true).desc("Amount to send").build();
+
+        options.addOption(address);
+        options.addOption(sendFrom);
+        options.addOption(sendTo);
+        options.addOption(sendAmount);
     }
 
     /**
@@ -29,15 +40,40 @@ public class CLI {
         try {
             CommandLineParser parser = new DefaultParser();
             CommandLine cmd = parser.parse(options,args);
-            if (cmd.hasOption("h")){
-                help();
-            }
-            if (cmd.hasOption("add")){
-                String data = cmd.getOptionValue("add");
-                addBlock(data);
-            }
-            if (cmd.hasOption("print")){
-                printChain();
+            switch (args[0]) {
+                case "createblockchain":
+                    String createblockchainAddress = cmd.getOptionValue("address");
+                    if (StringUtils.isBlank(createblockchainAddress)){
+                        help();
+                    }
+                    this.createBlockchain(createblockchainAddress);
+                    break;
+                case "getbalance":
+                    String getBalanceAddress = cmd.getOptionValue("address");
+                    if (StringUtils.isBlank(getBalanceAddress)){
+                        help();
+                    }
+                    this.getBalance(getBalanceAddress);
+                    break;
+                case "send":
+                    String sendFrom = cmd.getOptionValue("from");
+                    String sendTo = cmd.getOptionValue("to");
+                    String sendAmount = cmd.getOptionValue("amount");
+                    if (StringUtils.isBlank(sendFrom)
+                            || StringUtils.isBlank(sendTo)
+                            || StringUtils.isBlank(sendAmount)){
+                        help();
+                    }
+                    this.send(sendFrom,sendTo, Integer.parseInt(sendAmount));
+                    break;
+                case "printchain":
+                    this.printChain();
+                    break;
+                case "h":
+                    this.help();
+                    break;
+                default:
+                    this.help();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,19 +92,49 @@ public class CLI {
     }
 
     private void help() {
-        HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp("Main",options);
+        System.out.println("Usage:");
+        System.out.println("  getbalance -address ADDRESS - Get balance of ADDRESS");
+        System.out.println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS");
+        System.out.println("  printchain - Print all the blocks of the blockchain");
+        System.out.println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO");
         System.exit(0);
     }
 
-    private void addBlock(String data) throws Exception {
-        Blockchain blockchain = Blockchain.newBlockchain();
-        blockchain.addBlock(data);
+    /**
+     * 创建区块链
+     * @param address
+     */
+    private void createBlockchain(String address) {
+        Blockchain.createBlockchain(address);
+        System.out.println("Done!");
     }
 
-    private void printChain() {
-        Blockchain blockchain = Blockchain.newBlockchain();
-        for (Blockchain.BlockchainIterator iterator = blockchain.getBlockIterator();iterator.hashNext();){
+    /**
+     * 查询钱包余额
+     */
+    private void getBalance(String address) {
+        Blockchain blockchain = Blockchain.createBlockchain(address);
+        TXOutput[] txOutputs = blockchain.findUTXO(address);
+        int balance = 0;
+        if (txOutputs != null && txOutputs.length > 0){
+            for (TXOutput txOutput: txOutputs){
+                balance += txOutput.getValue();
+            }
+        }
+        System.out.printf("Balance of '%s': %d\n",address,balance);
+    }
+
+    private void send(String from,String to,int amount) throws Exception {
+        Blockchain blockchain = Blockchain.createBlockchain(from);
+        Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
+        blockchain.mineBlock(new Transaction[]{transaction});
+        RocksDBUtils.getInstance().closeDB();
+        System.out.println("Success!");
+    }
+
+    private void printChain() throws Exception {
+        Blockchain blockchain = Blockchain.initBlockchainFromDB();
+        for (Blockchain.BlockchainIterator iterator = blockchain.getBlockchainIterator(); iterator.hashNext();){
             Block block = iterator.next();
             if (block != null){
                 boolean validate = ProofOfWork.newProofOfWork(block).validate();
