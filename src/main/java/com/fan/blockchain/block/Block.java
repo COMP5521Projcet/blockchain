@@ -13,13 +13,14 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.time.Instant;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Block {
+public class Block implements Serializable {
     private static final String ZERO_HASH = Hex.encodeHexString(new byte[32]);
     private String hash;
     private String previousHash;

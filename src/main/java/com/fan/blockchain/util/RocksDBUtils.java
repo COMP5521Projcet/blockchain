@@ -57,13 +57,13 @@ public class RocksDBUtils {
      */
     private void initRocksDB() {
         try {
-            byte[] blockBucketKey = SerializeUtils.serialize(BLOCKS_BUCKET_KEY);
+            byte[] blockBucketKey = FstUtils.serializer(BLOCKS_BUCKET_KEY);
             byte[] blockBucketBytes = db.get(blockBucketKey);
             if (blockBucketBytes != null) {
-                blockBucket = (Map) SerializeUtils.deserialize(blockBucketBytes);
+                blockBucket =  FstUtils.deserializer(blockBucketBytes,Map.class);
             } else {
                 blockBucket = Maps.newHashMap();
-                db.put(blockBucketKey,SerializeUtils.serialize(blockBucket));
+                db.put(blockBucketKey,FstUtils.serializer(blockBucket));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,8 +75,8 @@ public class RocksDBUtils {
      */
     public void putLastBlockHash(String tipBlockHash) {
         try {
-            blockBucket.put(LAST_BLOCK_KEY,SerializeUtils.serialize(tipBlockHash));
-            db.put(SerializeUtils.serialize(BLOCKS_BUCKET_KEY),SerializeUtils.serialize(blockBucket));
+            blockBucket.put(LAST_BLOCK_KEY,FstUtils.serializer(tipBlockHash));
+            db.put(FstUtils.serializer(BLOCKS_BUCKET_KEY),FstUtils.serializer(blockBucket));
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
@@ -88,7 +88,7 @@ public class RocksDBUtils {
     public String getLastBlockHash() {
         byte[] lastBlockHashBytes = blockBucket.get(LAST_BLOCK_KEY);
         if (lastBlockHashBytes != null) {
-            return (String) SerializeUtils.deserialize(lastBlockHashBytes);
+            return  FstUtils.deserializer(lastBlockHashBytes,String.class);
         }
         return "";
     }
@@ -98,8 +98,8 @@ public class RocksDBUtils {
      */
     public void putBlock(Block block)  {
         try {
-            blockBucket.put(block.getHash(),SerializeUtils.serialize(block));
-            db.put(SerializeUtils.serialize(BLOCKS_BUCKET_KEY),SerializeUtils.serialize(blockBucket));
+            blockBucket.put(block.getHash(),FstUtils.serializer(block));
+            db.put(FstUtils.serializer(BLOCKS_BUCKET_KEY),FstUtils.serializer(blockBucket));
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
@@ -111,7 +111,7 @@ public class RocksDBUtils {
     public Block getBlock(String blockHash) {
         byte[] blockBytes = blockBucket.get(blockHash);
         if (blockBytes != null) {
-            return (Block) SerializeUtils.deserialize(blockBytes);
+            return FstUtils.deserializer(blockBytes,Block.class);
         }
         return null;
     }

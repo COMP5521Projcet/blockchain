@@ -5,9 +5,15 @@ import com.fan.blockchain.block.Blockchain;
 import com.fan.blockchain.pow.ProofOfWork;
 import com.fan.blockchain.transaction.TXOutput;
 import com.fan.blockchain.transaction.Transaction;
+import com.fan.blockchain.util.Base58Check;
 import com.fan.blockchain.util.RocksDBUtils;
+import com.fan.blockchain.util.WalletUtils;
+import com.fan.blockchain.wallet.Wallet;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Set;
 
 /**
  * 程序命令行工具入口
@@ -21,9 +27,9 @@ public class CLI {
         Option helpCmd = Option.builder("h").desc("show help").build();
         options.addOption(helpCmd);
 
-        Option address = Option.builder("address").hasArg(true).desc("Source wallet address").build();
-        Option sendFrom = Option.builder("from").hasArg(true).desc("Source wallet address").build();
-        Option sendTo = Option.builder("to").hasArg(true).desc("Destination wallet address").build();
+        Option address = Option.builder("address").hasArg(true).desc("Source com.fan.blockchain.wallet address").build();
+        Option sendFrom = Option.builder("from").hasArg(true).desc("Source com.fan.blockchain.wallet address").build();
+        Option sendTo = Option.builder("to").hasArg(true).desc("Destination com.fan.blockchain.wallet address").build();
         Option sendAmount = Option.builder("amount").hasArg(true).desc("Amount to send").build();
 
         options.addOption(address);
@@ -65,6 +71,12 @@ public class CLI {
                         help();
                     }
                     this.send(sendFrom,sendTo, Integer.parseInt(sendAmount));
+                    break;
+                case "createwallet":
+                    this.createWallet();
+                    break;
+                case "printaddresses":
+                    this.printAddress();
                     break;
                 case "printchain":
                     this.printChain();
@@ -112,9 +124,18 @@ public class CLI {
     /**
      * 查询钱包余额
      */
-    private void getBalance(String address) {
+    private void getBalance(String address) throws Exception {
+        // 检查钱包地址是否合法
+        try {
+            Base58Check.base58ToBytes(address);
+        } catch (Exception e){
+            throw new Exception("ERROR: invalid wallet address");
+        }
         Blockchain blockchain = Blockchain.createBlockchain(address);
-        TXOutput[] txOutputs = blockchain.findUTXO(address);
+        // 得到公钥Hash
+        byte[] versionedPayload = Base58Check.base58ToBytes(address);
+        byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
+        TXOutput[] txOutputs = blockchain.findUTXO(pubKeyHash);
         int balance = 0;
         if (txOutputs != null && txOutputs.length > 0){
             for (TXOutput txOutput: txOutputs){
@@ -125,6 +146,18 @@ public class CLI {
     }
 
     private void send(String from,String to,int amount) throws Exception {
+        // 检查钱包地址是否合法
+        try {
+            Base58Check.base58ToBytes(from);
+        } catch (Exception e) {
+            throw new Exception("ERROR: sender address is invalid ! address=" + from);
+        }
+        // 检查钱包地址是否合法
+        try {
+            Base58Check.base58ToBytes(to);
+        } catch (Exception e) {
+            throw new Exception("ERROR: receiver address is invalid ! address=" + to);
+        }
         Blockchain blockchain = Blockchain.createBlockchain(from);
         Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
         blockchain.mineBlock(new Transaction[]{transaction});
@@ -140,6 +173,24 @@ public class CLI {
                 boolean validate = ProofOfWork.newProofOfWork(block).validate();
                 System.out.println(block.toString() + ", validate = " + validate);
             }
+        }
+    }
+
+
+    private void createWallet() {
+        Wallet wallet = WalletUtils.getInstance().createWallet();
+        System.out.println("wallet address : " + wallet.getAddress());
+    }
+
+
+    private void printAddress() throws Exception {
+        Set<String> addresses = WalletUtils.getInstance().getAddresses();
+        if (addresses == null || addresses.isEmpty()){
+            System.out.println("There is no address");
+            return;
+        }
+        for (String address: addresses){
+            System.out.println("Wallet address: " + address);
         }
     }
 }
