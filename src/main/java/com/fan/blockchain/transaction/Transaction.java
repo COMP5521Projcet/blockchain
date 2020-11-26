@@ -2,7 +2,7 @@ package com.fan.blockchain.transaction;
 
 import com.fan.blockchain.block.Blockchain;
 import com.fan.blockchain.util.BtcAddressUtils;
-import com.fan.blockchain.util.FstUtils;
+import com.fan.blockchain.util.SerializeUtils;
 //import com.fan.blockchain.util.SerializeUtils;
 import com.fan.blockchain.util.WalletUtils;
 import com.fan.blockchain.wallet.Wallet;
@@ -49,10 +49,10 @@ public class Transaction implements Serializable{
      */
     public byte[] hash() {
         // 使用序列化的方式对Transaction对象进行深度复制
-        byte[] serializedBytes = FstUtils.serializer(this);
-        Transaction copyTx =  FstUtils.deserializer(serializedBytes,Transaction.class);
+        byte[] serializedBytes = SerializeUtils.serializer(this);
+        Transaction copyTx =  SerializeUtils.deserializer(serializedBytes,Transaction.class);
         copyTx.setTxId(new byte[]{});
-        return DigestUtils.sha256(FstUtils.serializer(copyTx));
+        return DigestUtils.sha256(SerializeUtils.serializer(copyTx));
     }
     /**
      * 创建coinbase交易
@@ -100,7 +100,7 @@ public class Transaction implements Serializable{
         byte[] publicKey = senderWallet.getPublicKey();
         byte[] pubKeyHash = BtcAddressUtils.ripeMD160Hash(publicKey);
         //找到from可花费的outputs
-        SpendableOutputResult result = blockchain.findSpendableOutputs(pubKeyHash,amount);
+        SpendableOutputResult result = new UTXOSet(blockchain).findSpendableOutputs(pubKeyHash,amount);
         int accumulated = result.getAccumulated();
         Map<String,int[]> unspentOuts = result.getUnspentOuts();
         if (accumulated < amount) {

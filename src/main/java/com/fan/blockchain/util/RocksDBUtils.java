@@ -1,11 +1,13 @@
 package com.fan.blockchain.util;
 
 import com.fan.blockchain.block.Block;
+import com.fan.blockchain.transaction.TXOutput;
 import lombok.Getter;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import com.google.common.collect.Maps;
+import sun.rmi.runtime.Log;
 
 import java.util.Map;
 
@@ -18,12 +20,16 @@ public class RocksDBUtils {
     private static final String DB_FILE = "blockchain.db";
     // 区块桶前缀
     private static final String BLOCKS_BUCKET_KEY = "blocks";
+    // 链状态桶
+    private static final String CHAINSTATE_BUCKET_KEY = "chainstate";
     // 最新一个区块
     private static final String LAST_BLOCK_KEY = "l";
     private volatile static RocksDBUtils instance;
     @Getter
     private RocksDB db;
     private Map<String,byte[]> blockBucket;
+    @Getter
+    private Map<String,byte[]> chainstateBucket;
 
     public static RocksDBUtils getInstance() {
         if (instance == null) {
@@ -39,6 +45,7 @@ public class RocksDBUtils {
     public RocksDBUtils() {
         openDB();
         initRocksDB();
+        initChainStateBucket();
     }
 
     /**
@@ -57,16 +64,33 @@ public class RocksDBUtils {
      */
     private void initRocksDB() {
         try {
-            byte[] blockBucketKey = FstUtils.serializer(BLOCKS_BUCKET_KEY);
+            byte[] blockBucketKey = SerializeUtils.serializer(BLOCKS_BUCKET_KEY);
             byte[] blockBucketBytes = db.get(blockBucketKey);
             if (blockBucketBytes != null) {
-                blockBucket =  FstUtils.deserializer(blockBucketBytes,Map.class);
+                blockBucket =  SerializeUtils.deserializer(blockBucketBytes,Map.class);
             } else {
                 blockBucket = Maps.newHashMap();
-                db.put(blockBucketKey,FstUtils.serializer(blockBucket));
+                db.put(blockBucketKey, SerializeUtils.serializer(blockBucket));
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    /**
+     * 初始化 chainstate 数据桶
+     */
+    private void initChainStateBucket() {
+        try {
+            byte[] chainstateBucketKey = SerializeUtils.serializer(CHAINSTATE_BUCKET_KEY);
+            byte[] chainstateBucketBytes = db.get(chainstateBucketKey);
+            if (chainstateBucketBytes != null){
+                chainstateBucket = SerializeUtils.deserializer(chainstateBucketBytes,Map.class);
+            } else {
+                chainstateBucket = Maps.newHashMap();
+                db.put(chainstateBucketKey,SerializeUtils.serializer(chainstateBucket));
+            }
+        } catch (RocksDBException e){
+            throw new RuntimeException("Fail to init chainstate bucket!");
         }
     }
 
@@ -75,8 +99,8 @@ public class RocksDBUtils {
      */
     public void putLastBlockHash(String tipBlockHash) {
         try {
-            blockBucket.put(LAST_BLOCK_KEY,FstUtils.serializer(tipBlockHash));
-            db.put(FstUtils.serializer(BLOCKS_BUCKET_KEY),FstUtils.serializer(blockBucket));
+            blockBucket.put(LAST_BLOCK_KEY, SerializeUtils.serializer(tipBlockHash));
+            db.put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY), SerializeUtils.serializer(blockBucket));
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
@@ -88,7 +112,7 @@ public class RocksDBUtils {
     public String getLastBlockHash() {
         byte[] lastBlockHashBytes = blockBucket.get(LAST_BLOCK_KEY);
         if (lastBlockHashBytes != null) {
-            return  FstUtils.deserializer(lastBlockHashBytes,String.class);
+            return  SerializeUtils.deserializer(lastBlockHashBytes,String.class);
         }
         return "";
     }
@@ -98,8 +122,8 @@ public class RocksDBUtils {
      */
     public void putBlock(Block block)  {
         try {
-            blockBucket.put(block.getHash(),FstUtils.serializer(block));
-            db.put(FstUtils.serializer(BLOCKS_BUCKET_KEY),FstUtils.serializer(blockBucket));
+            blockBucket.put(block.getHash(), SerializeUtils.serializer(block));
+            db.put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY), SerializeUtils.serializer(blockBucket));
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
@@ -111,9 +135,52 @@ public class RocksDBUtils {
     public Block getBlock(String blockHash) {
         byte[] blockBytes = blockBucket.get(blockHash);
         if (blockBytes != null) {
-            return FstUtils.deserializer(blockBytes,Block.class);
+            return SerializeUtils.deserializer(blockBytes,Block.class);
         }
         return null;
+    }
+    /**
+     * 清空chainstate bucket
+     */
+    public void cleanChianstateBucket(){
+        try {
+            chainstateBucket.clear();
+        } catch (Exception e){
+            throw new RuntimeException("Fail to clear chainstate bucket!", e);
+        }
+    }
+    /**
+     * 保存UTXO数据
+     */
+    public void putUTXOs(String key, TXOutput[] utxos){
+        try {
+            chainstateBucket.put(key,SerializeUtils.serializer(utxos));
+            db.put(SerializeUtils.serializer(CHAINSTATE_BUCKET_KEY),SerializeUtils.serializer(chainstateBucket));
+        }catch (Exception e){
+            throw new RuntimeException("Fail to put UTXOS into chainstate bucket! key = " + key,e);
+        }
+    }
+
+    /**
+     *查询UTXO数据
+     */
+    public TXOutput[] getUTXOs(String key) {
+        byte[] utxosByte = chainstateBucket.get(key);
+        if (utxosByte != null){
+            return SerializeUtils.deserializer(utxosByte,TXOutput[].class);
+        }
+        return null;
+    }
+    /**
+     * 删除UTXO数据
+     */
+    public void deleteUTXOs(String key) {
+        try {
+            chainstateBucket.remove(key);
+            db.put(SerializeUtils.serializer(CHAINSTATE_BUCKET_KEY),SerializeUtils.serializer(chainstateBucket));
+        } catch (Exception e){
+            throw new RuntimeException("Fail to delete UTXOs by key! key = " + key,e);
+        }
     }
 
     /**

@@ -5,6 +5,7 @@ import com.fan.blockchain.block.Blockchain;
 import com.fan.blockchain.pow.ProofOfWork;
 import com.fan.blockchain.transaction.TXOutput;
 import com.fan.blockchain.transaction.Transaction;
+import com.fan.blockchain.transaction.UTXOSet;
 import com.fan.blockchain.util.Base58Check;
 import com.fan.blockchain.util.RocksDBUtils;
 import com.fan.blockchain.util.WalletUtils;
@@ -117,7 +118,9 @@ public class CLI {
      * @param address
      */
     private void createBlockchain(String address) {
-        Blockchain.createBlockchain(address);
+        Blockchain blockchain = Blockchain.createBlockchain(address);
+        UTXOSet utxoSet = new UTXOSet(blockchain);
+        utxoSet.reIndex();
         System.out.println("Done!");
     }
 
@@ -135,7 +138,8 @@ public class CLI {
         // 得到公钥Hash
         byte[] versionedPayload = Base58Check.base58ToBytes(address);
         byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
-        TXOutput[] txOutputs = blockchain.findUTXO(pubKeyHash);
+        UTXOSet utxoSet = new UTXOSet(blockchain);
+        TXOutput[] txOutputs = utxoSet.findUTXOs(pubKeyHash);
         int balance = 0;
         if (txOutputs != null && txOutputs.length > 0){
             for (TXOutput txOutput: txOutputs){
@@ -159,8 +163,12 @@ public class CLI {
             throw new Exception("ERROR: receiver address is invalid ! address=" + to);
         }
         Blockchain blockchain = Blockchain.createBlockchain(from);
+        // 新交易
         Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
-        blockchain.mineBlock(new Transaction[]{transaction});
+        // 奖励
+        Transaction rewardTx = Transaction.newCoinbaseTX(from,"");
+        Block newBlock = blockchain.mineBlock(new Transaction[]{transaction,rewardTx});
+        new UTXOSet(blockchain).update(newBlock);
         RocksDBUtils.getInstance().closeDB();
         System.out.println("Success!");
     }

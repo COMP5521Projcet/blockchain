@@ -2,6 +2,7 @@ package com.fan.blockchain.block;
 
 import com.fan.blockchain.pow.PowResult;
 import com.fan.blockchain.pow.ProofOfWork;
+import com.fan.blockchain.transaction.MerkleTree;
 import com.fan.blockchain.transaction.Transaction;
 import com.fan.blockchain.util.ByteUtils;
 import com.fan.blockchain.util.RocksDBUtils;
@@ -49,7 +50,7 @@ public class Block implements Serializable {
         for (int i = 0;i < this.getTransactions().length;i++) {
             txIdArrays[i] = this.getTransactions()[i].getTxId();
         }
-        return DigestUtils.sha256(ByteUtils.merge(txIdArrays));
+        return new MerkleTree(txIdArrays).getRoot().getHash();
     }
 
 }
