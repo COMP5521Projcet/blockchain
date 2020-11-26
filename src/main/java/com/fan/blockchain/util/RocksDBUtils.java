@@ -7,7 +7,6 @@ import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import com.google.common.collect.Maps;
-import sun.rmi.runtime.Log;
 
 import java.util.Map;
 
@@ -60,7 +59,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 初始化 blocks 数据桶
+     * 初始化 blocks 数据桶: 存储区块数据
      */
     private void initRocksDB() {
         try {
@@ -77,7 +76,7 @@ public class RocksDBUtils {
         }
     }
     /**
-     * 初始化 chainstate 数据桶
+     * 初始化 chainstate 数据桶: 存储交易数据
      */
     private void initChainStateBucket() {
         try {

@@ -106,9 +106,10 @@ public class CLI {
 
     private void help() {
         System.out.println("Usage:");
+        System.out.println("  createwallet - Generates a new key-pair and saves it into the wallet file");
+        System.out.println("  printaddresses - print all wallet address");
         System.out.println("  getbalance -address ADDRESS - Get balance of ADDRESS");
         System.out.println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS");
-        System.out.println("  printchain - Print all the blocks of the blockchain");
         System.out.println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO");
         System.exit(0);
     }
