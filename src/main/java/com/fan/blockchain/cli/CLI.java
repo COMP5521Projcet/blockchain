@@ -13,8 +13,11 @@ import com.fan.blockchain.wallet.Wallet;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
-import java.util.Set;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.*;
 
 /**
  * 程序命令行工具入口
@@ -23,7 +26,8 @@ public class CLI {
     private String[] args;
     private Options options = new Options();
 
-    public CLI(String[] args) {
+    public CLI(String[] args) throws IOException {
+
         this.args = args;
         Option helpCmd = Option.builder("h").desc("show help").build();
         options.addOption(helpCmd);
@@ -108,6 +112,7 @@ public class CLI {
         System.out.println("Usage:");
         System.out.println("  createwallet - Generates a new key-pair and saves it into the wallet file");
         System.out.println("  printaddresses - print all wallet address");
+        System.out.println("  printchain - print the whole blockchain");
         System.out.println("  getbalance -address ADDRESS - Get balance of ADDRESS");
         System.out.println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS");
         System.out.println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO");
