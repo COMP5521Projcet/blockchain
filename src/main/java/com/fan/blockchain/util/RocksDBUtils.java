@@ -3,6 +3,7 @@ package com.fan.blockchain.util;
 import com.fan.blockchain.block.Block;
 import com.fan.blockchain.transaction.TXOutput;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -93,6 +94,27 @@ public class RocksDBUtils {
         }
     }
 
+    /**
+     * 获取最新的一个区块
+     */
+    public Block getLastBlock() {
+        String lastBlockHash = getLastBlockHash();
+        if (StringUtils.isBlank(lastBlockHash)){
+            throw new RuntimeException("ERROR: There is no block now!");
+        }
+        Block lastBlock = getBlock(lastBlockHash);
+        if (lastBlock == null){
+            throw new RuntimeException("ERROR: Fail to get last block !");
+        }
+        return lastBlock;
+    }
+    /**
+     * 获取当前区块链的高度
+     */
+    public int getCurrentHeight(){
+        Block lastBlock = getLastBlock();
+        return lastBlock.getHeight();
+    }
     /**
      * 保存最新一个区块的hash
      */

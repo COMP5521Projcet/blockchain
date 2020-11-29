@@ -11,7 +11,7 @@ import java.math.BigInteger;
 @Data
 public class ProofOfWork {
     // 难度目标位
-    public static final int TARGET_BITS = 20;
+    public static int target_bits = 20 ;
     private Block block;
     // 难度目标值
     private BigInteger target;
@@ -22,8 +22,10 @@ public class ProofOfWork {
     }
 
     public static ProofOfWork newProofOfWork(Block block) {
+        // 动态调整挖矿难度: 每10个区块
+        target_bits = target_bits + (block.getHeight() / 10);
         // 将1向左移动 256 - TARGET_BITS 位 得到难度目标值
-        BigInteger targetValue = BigInteger.ONE.shiftLeft(256 - TARGET_BITS);
+        BigInteger targetValue = BigInteger.ONE.shiftLeft(256 - target_bits);
         return new ProofOfWork(block,targetValue);
     }
 
@@ -60,7 +62,7 @@ public class ProofOfWork {
                 preBlockHashBytes,
                 this.getBlock().hashTransaction(),
                 ByteUtils.toBytes(this.getBlock().getTimeStamp()),
-                ByteUtils.toBytes(TARGET_BITS),
+                ByteUtils.toBytes(target_bits),
                 ByteUtils.toBytes(nonce)
         );
     }

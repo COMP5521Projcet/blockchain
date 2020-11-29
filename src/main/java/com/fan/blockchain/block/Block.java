@@ -6,11 +6,11 @@ import com.fan.blockchain.transaction.MerkleTree;
 import com.fan.blockchain.transaction.Transaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.time.Instant;
 
 @Data
@@ -23,13 +23,14 @@ public class Block implements Serializable {
     private Transaction[] transactions;
     private long timeStamp;
     private long nonce;
+    private int height;
 
     public static Block newGenesisBlock(Transaction coinbase) {
-        return Block.newBlock(ZERO_HASH,new Transaction[]{coinbase});
+        return Block.newBlock(ZERO_HASH,new Transaction[]{coinbase},0);
     }
 
-    public static Block newBlock(String previousHash, Transaction[] transactions) {
-        Block block = new Block("",previousHash,transactions, Instant.now().getEpochSecond(),0);
+    public static Block newBlock(String previousHash, Transaction[] transactions,int height) {
+        Block block = new Block("",previousHash,transactions, Instant.now().getEpochSecond(),0,height);
         ProofOfWork pow = ProofOfWork.newProofOfWork(block);
         PowResult powResult = pow.run();
         block.setHash(powResult.getHash());
