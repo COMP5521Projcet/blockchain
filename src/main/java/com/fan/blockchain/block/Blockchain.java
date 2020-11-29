@@ -68,7 +68,8 @@ public class Blockchain {
         if (lastBlockHash == null) {
             throw new Exception("ERROR: Fail to get last block hash!");
         }
-        Block block = Block.newBlock(lastBlockHash,transactions);
+        Block lastBlock = RocksDBUtils.getInstance().getLastBlock();
+        Block block = Block.newBlock(lastBlockHash,transactions,lastBlock.getHeight() + 1);
         this.addBlock(block);
         return block;
     }
