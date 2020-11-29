@@ -11,14 +11,18 @@ public class AddressBook {
 	
 	public ArrayList<IpAddress> neighbours = new ArrayList<IpAddress>();
 	
-	public String fname = "myAddressBook.txt";
+	public String fname = null;
 	
+	//set my IP address, and generate one address book with one IP. 
 	public AddressBook(String MyIPString,String initNeig) {
+		
 		this.myIP = new IpAddress(MyIPString);
+		this.fname = "AddressBook"+this.myIP.getPort()+".txt";
 		this.writeAddressInit(initNeig);
 		this.loadAddressBook();
 	}
 	
+	//从txt文档中读取
 	private void loadAddressBook() {		
 		try {
 			File myObj = new File(this.fname);
@@ -33,30 +37,32 @@ public class AddressBook {
 		    e.printStackTrace();
 		}
 	}
-	
+	//写入最初的neighbor
 	private void writeAddressInit(String initNeig) {
 		String line = System.getProperty("line.separator"); 
 		try {
 			File myObj = new File(this.fname);
 			if (myObj.createNewFile()) {
 				System.out.println("File created: " + myObj.getName());
-				FileWriter myWriter = new FileWriter("myAddressBook.txt");
-			      
-				myWriter.write(initNeig);
-				myWriter.write(line); 	
-			    
-			    myWriter.close();
+				
 			    System.out.println("Successfully wrote to the file.");
 			} else {
 				System.out.println("File already exists.");
 			}
+			
+			FileWriter myWriter = new FileWriter(this.fname,false);
+		      
+			myWriter.write(initNeig);
+			myWriter.write(line); 	
+		    
+		    myWriter.close();
 			
 		} catch(IOException e) {
 			System.out.println("An error occurred.");
 		    e.printStackTrace();
 		}
 	}
-	
+	//把neighbor写入文件中
 	private void writeAddressBook() {
 		String line = System.getProperty("line.separator"); 
 		try {
@@ -66,7 +72,7 @@ public class AddressBook {
 			} else {
 				System.out.println("File already exists.");
 			}
-			FileWriter myWriter = new FileWriter("myAddressBook.txt");
+			FileWriter myWriter = new FileWriter(this.fname,false);
 			for (int counter = 0; counter < this.neighbours.size(); counter++) { 		      
 				myWriter.write(this.neighbours.get(counter).getIpAddress());
 				myWriter.write(line); 	
@@ -78,7 +84,7 @@ public class AddressBook {
 		    e.printStackTrace();
 		}
 	}
-	
+	//加入邻居，要求不与之前重复
 	public void  addAddressBook(ArrayList<IpAddress> newNeighbours) {
 		for (int counter = 0; counter < newNeighbours.size(); counter++) { 
 			boolean same = false;
