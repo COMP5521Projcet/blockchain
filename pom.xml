@@ -87,6 +87,13 @@
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.59</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.3.4</version>
+        </dependency>
+
     </dependencies>
 
     <build>

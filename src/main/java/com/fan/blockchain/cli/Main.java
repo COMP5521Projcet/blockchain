@@ -1,11 +1,9 @@
 package com.fan.blockchain.cli;
 
-import com.fan.blockchain.network.ServerSocketThread;
-import com.fan.blockchain.network.SocketThread;
+import com.fan.blockchain.network.P2PClient;
+import com.fan.blockchain.network.P2PServer;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.Scanner;
 
 /**
  * 启动命令行

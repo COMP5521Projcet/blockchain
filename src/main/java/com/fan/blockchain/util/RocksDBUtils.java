@@ -3,6 +3,7 @@ package com.fan.blockchain.util;
 import com.fan.blockchain.block.Block;
 import com.fan.blockchain.transaction.TXOutput;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
@@ -27,6 +28,8 @@ public class RocksDBUtils {
     private volatile static RocksDBUtils instance;
     @Getter
     private RocksDB db;
+    @Getter
+    @Setter
     private Map<String,byte[]> blockBucket;
     @Getter
     private Map<String,byte[]> chainstateBucket;
@@ -112,8 +115,11 @@ public class RocksDBUtils {
      * 获取当前区块链的高度
      */
     public int getCurrentHeight(){
-        Block lastBlock = getLastBlock();
-        return lastBlock.getHeight();
+        String lastBlockHash = getLastBlockHash();
+        if (StringUtils.isBlank(lastBlockHash)){
+            return -1;
+        }
+        return getBlock(lastBlockHash).getHeight();
     }
     /**
      * 保存最新一个区块的hash
@@ -144,6 +150,18 @@ public class RocksDBUtils {
     public void putBlock(Block block)  {
         try {
             blockBucket.put(block.getHash(), SerializeUtils.serializer(block));
+            db.put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY), SerializeUtils.serializer(blockBucket));
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 更新链
+     */
+
+    public void updateChain()  {
+        try {
             db.put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY), SerializeUtils.serializer(blockBucket));
         } catch (RocksDBException e) {
             e.printStackTrace();

@@ -2,6 +2,9 @@ package com.fan.blockchain.cli;
 
 import com.fan.blockchain.block.Block;
 import com.fan.blockchain.block.Blockchain;
+import com.fan.blockchain.network.P2PClient;
+import com.fan.blockchain.network.P2PServer;
+import com.fan.blockchain.network.P2PThread;
 import com.fan.blockchain.pow.ProofOfWork;
 import com.fan.blockchain.transaction.TXOutput;
 import com.fan.blockchain.transaction.Transaction;
@@ -36,11 +39,15 @@ public class CLI {
         Option sendFrom = Option.builder("from").hasArg(true).desc("Source com.fan.blockchain.wallet address").build();
         Option sendTo = Option.builder("to").hasArg(true).desc("Destination com.fan.blockchain.wallet address").build();
         Option sendAmount = Option.builder("amount").hasArg(true).desc("Amount to send").build();
+        Option port = Option.builder("port").hasArg(true).desc("port").build();
+        Option hostAddress = Option.builder("host").hasArg(true).desc("host").build();
 
         options.addOption(address);
         options.addOption(sendFrom);
         options.addOption(sendTo);
         options.addOption(sendAmount);
+        options.addOption(port);
+        options.addOption(hostAddress);
     }
 
     /**
@@ -86,6 +93,11 @@ public class CLI {
                 case "printchain":
                     this.printChain();
                     break;
+                case "communication":
+                    String port = cmd.getOptionValue("port");
+                    String host = cmd.getOptionValue("host");
+                    this.communication(port,host);
+                    break;
                 case "h":
                     this.help();
                     break;
@@ -110,6 +122,7 @@ public class CLI {
 
     private void help() {
         System.out.println("Usage:");
+        System.out.println("  communication -port PORT -host HOST - Communication with other nodes in the same p2p network");
         System.out.println("  createwallet - Generates a new key-pair and saves it into the wallet file");
         System.out.println("  printaddresses - print all wallet address");
         System.out.println("  printchain - print the whole blockchain");
@@ -117,6 +130,21 @@ public class CLI {
         System.out.println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS");
         System.out.println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO");
         System.exit(0);
+    }
+
+    /**
+     * verify blockchain with other client
+     */
+    private void communication(String port, String host){
+        P2PServer p2pServer = new P2PServer();
+        P2PClient p2pClient = new P2PClient();
+        int p2pPort = Integer.valueOf(port);
+        // 启动p2p服务端
+        p2pServer.initServer(p2pPort);
+        if (host != null) {
+            // 作为p2p客户端连接p2p服务端
+            p2pClient.connectPeer(host);
+        }
     }
 
     /**
