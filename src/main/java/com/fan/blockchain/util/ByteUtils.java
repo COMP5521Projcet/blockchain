@@ -12,7 +12,7 @@ public class ByteUtils {
     public static final String ZERO_HASH = Hex.encodeHexString(new byte[32]);
 
     /**
-     * 将多个字节数组合并成一个字节数组
+     * merge many byte array to one byte array
      */
     public static byte[] merge(byte[]... bytes){
         Stream<Byte> stream = Stream.of();
@@ -23,7 +23,7 @@ public class ByteUtils {
     }
 
     /**
-     * long转化为 byte[]
+     * convert long to byte array
      */
     public static byte[] toBytes(long val){
         return ByteBuffer.allocate(Long.BYTES).putLong(val).array();

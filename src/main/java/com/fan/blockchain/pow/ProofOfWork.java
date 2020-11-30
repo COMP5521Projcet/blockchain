@@ -10,10 +10,10 @@ import java.math.BigInteger;
 
 @Data
 public class ProofOfWork {
-    // 难度目标位
+    // difficulty target bits
     public static int target_bits = 20 ;
     private Block block;
-    // 难度目标值
+    // difficulty target value
     private BigInteger target;
 
     private ProofOfWork(Block block, BigInteger target) {
@@ -22,9 +22,9 @@ public class ProofOfWork {
     }
 
     public static ProofOfWork newProofOfWork(Block block) {
-        // 动态调整挖矿难度: 每10个区块
+        // change difficulty dynamic: per ten blocks
         target_bits = target_bits + (block.getHeight() / 10);
-        // 将1向左移动 256 - TARGET_BITS 位 得到难度目标值
+        // left move 1 by (256 - target_bits) bits to get target value
         BigInteger targetValue = BigInteger.ONE.shiftLeft(256 - target_bits);
         return new ProofOfWork(block,targetValue);
     }
@@ -32,7 +32,6 @@ public class ProofOfWork {
     public PowResult run() {
         long nonce = 0;
         String shaHex = "";
-//        System.out.printf("Mining the block containing: %s \n",this.getBlock().getData());
         long startTime = System.currentTimeMillis();
         while (nonce < Long.MAX_VALUE){
             byte[] data = this.prepareData(nonce);
@@ -53,6 +52,11 @@ public class ProofOfWork {
         return new BigInteger(DigestUtils.sha256Hex(data),16).compareTo(this.target) == -1;
     }
 
+    /**
+     * prepare all the data to calculate hash
+     * @param nonce
+     * @return
+     */
     private byte[] prepareData(long nonce){
         byte[] preBlockHashBytes = {};
         if (StringUtils.isNoneBlank(this.getBlock().getPreviousHash())) {

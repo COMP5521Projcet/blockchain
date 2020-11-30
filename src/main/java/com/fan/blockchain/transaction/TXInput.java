@@ -12,13 +12,13 @@ import java.util.Arrays;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TXInput implements Serializable {
-    // 交易ID的hash值
+    // transaction's ID
     private byte[] txId;
-    // 交易输出的索引
+    // index of outputs
     private int txOutputIndex;
-    // 签名
+    // signature
     private byte[] signature;
-    // 公钥(未经过hash的公钥)
+    // public key
     private byte[] pubKey;
 
     public boolean useKey(byte[] pubKeyHash){

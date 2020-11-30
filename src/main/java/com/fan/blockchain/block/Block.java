@@ -17,12 +17,19 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Block implements Serializable {
+    // coinbase's previous hash
     private static final String ZERO_HASH = Hex.encodeHexString(new byte[32]);
+    // block hash
     private String hash;
+    // previous hash
     private String previousHash;
+    // all transaction data
     private Transaction[] transactions;
+    // date
     private long timeStamp;
+    // Counter for proof of algorithm
     private long nonce;
+    // block's height
     private int height;
 
     public static Block newGenesisBlock(Transaction coinbase) {
@@ -39,7 +46,7 @@ public class Block implements Serializable {
     }
 
     /**
-     * 对区块中的交易信息进行hash计算
+     * calculate hash value of all information in the block
      */
     public byte[] hashTransaction() {
         byte[][] txIdArrays = new byte[this.getTransactions().length][];

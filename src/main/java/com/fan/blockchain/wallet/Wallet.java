@@ -22,11 +22,11 @@ import java.security.Security;
 @Data
 @AllArgsConstructor
 public class Wallet implements Serializable {
-    // 校验码长度
+    // checksum length
     private static final int ADDRESS_CHECKSUM_LEN = 4;
-    // 私钥
+    // private key
     private BCECPrivateKey privateKey;
-    // 公钥
+    // public key
     private byte[] publicKey;
 
     public Wallet(){
@@ -50,23 +50,23 @@ public class Wallet implements Serializable {
     }
 
     /**
-     * 创建新的密钥对
+     * create new key pair
      * @return
      * @throws Exception
      */
     private KeyPair newECKeyPair() throws Exception{
-        // 注册BC Provider
+        // register BC Provider
         Security.addProvider(new BouncyCastleProvider());
-        // 创建椭圆曲线算法的密钥对生成器，算法为ECDSA
+        // create generator of key pair.the algorithm is ECDSA
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDSA",BouncyCastleProvider.PROVIDER_NAME);
-        // 椭圆曲线(EC)域参数设定
+        // EC parameters specific
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
         keyPairGenerator.initialize(ecSpec,new SecureRandom());
         return keyPairGenerator.generateKeyPair();
     }
 
     /**
-     * 获取钱包地址
+     * get address of wallet
      */
     public String getAddress() {
         try {

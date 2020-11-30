@@ -4,7 +4,6 @@ import com.fan.blockchain.block.Block;
 import com.fan.blockchain.block.Blockchain;
 import com.fan.blockchain.network.P2PClient;
 import com.fan.blockchain.network.P2PServer;
-import com.fan.blockchain.network.P2PThread;
 import com.fan.blockchain.pow.ProofOfWork;
 import com.fan.blockchain.transaction.TXOutput;
 import com.fan.blockchain.transaction.Transaction;
@@ -16,14 +15,11 @@ import com.fan.blockchain.wallet.Wallet;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.*;
 
 /**
- * 程序命令行工具入口
+ * program command line
  */
 public class CLI {
     private String[] args;
@@ -51,7 +47,7 @@ public class CLI {
     }
 
     /**
-     * 命令行解析入口
+     * command parse entrance
      */
     public void parse() {
         this.validateArgs(args);
@@ -112,7 +108,7 @@ public class CLI {
     }
 
     /**
-     * 验证参数
+     * verify parameters
      */
     private void validateArgs(String[] args){
         if (args == null || args.length < 1) {
@@ -139,16 +135,16 @@ public class CLI {
         P2PServer p2pServer = new P2PServer();
         P2PClient p2pClient = new P2PClient();
         int p2pPort = Integer.valueOf(port);
-        // 启动p2p服务端
+        // start p2p server
         p2pServer.initServer(p2pPort);
         if (host != null) {
-            // 作为p2p客户端连接p2p服务端
+            // start p2p client and connect to server
             p2pClient.connectPeer(host);
         }
     }
 
     /**
-     * 创建区块链
+     * create blockchain
      * @param address
      */
     private void createBlockchain(String address) {
@@ -159,17 +155,17 @@ public class CLI {
     }
 
     /**
-     * 查询钱包余额
+     * get balance of wallet
      */
     private void getBalance(String address) throws Exception {
-        // 检查钱包地址是否合法
+        // check the address whether is valid
         try {
             Base58Check.base58ToBytes(address);
         } catch (Exception e){
             throw new Exception("ERROR: invalid wallet address");
         }
         Blockchain blockchain = Blockchain.createBlockchain(address);
-        // 得到公钥Hash
+        // get public key Hash
         byte[] versionedPayload = Base58Check.base58ToBytes(address);
         byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
         UTXOSet utxoSet = new UTXOSet(blockchain);
@@ -184,22 +180,22 @@ public class CLI {
     }
 
     private void send(String from,String to,int amount) throws Exception {
-        // 检查钱包地址是否合法
+        // check the address whether is valid
         try {
             Base58Check.base58ToBytes(from);
         } catch (Exception e) {
             throw new Exception("ERROR: sender address is invalid ! address=" + from);
         }
-        // 检查钱包地址是否合法
+        // check the address whether is valid
         try {
             Base58Check.base58ToBytes(to);
         } catch (Exception e) {
             throw new Exception("ERROR: receiver address is invalid ! address=" + to);
         }
         Blockchain blockchain = Blockchain.createBlockchain(from);
-        // 新交易
+        // new transaction
         Transaction transaction = Transaction.newUTXOTransaction(from, to, amount, blockchain);
-        // 奖励
+        // reward
         Transaction rewardTx = Transaction.newCoinbaseTX(from,"");
         Block newBlock = blockchain.mineBlock(new Transaction[]{transaction,rewardTx});
         new UTXOSet(blockchain).update(newBlock);

@@ -12,26 +12,27 @@ import java.util.Arrays;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TXOutput implements Serializable {
+    // value of this transaction's output
     private int value;
-    // 公钥Hash
+    // hash of public key
     private byte[] pubKeyHash;
 
     /**
-     * 创建交易输出
+     * create output
      * @param value
      * @param address
      * @return
      */
     public static TXOutput newTxOutput(int value, String address){
-        // 反向转化为byte数组
+        // convert to byte array
         byte[] versionedPayload = Base58Check.base58ToBytes(address);
-        // 去掉1byte的版本号
+        // remove version number(1byte)
         byte[] pubKeyHash = Arrays.copyOfRange(versionedPayload, 1, versionedPayload.length);
         return new TXOutput(value,pubKeyHash);
     }
 
     /**
-     * 检查交易输出是否能够使用指定的公钥
+     * check the hash of public key whether can unlock this output
      * @param pubKeyHash
      * @return
      */

@@ -34,17 +34,17 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Transaction implements Serializable{
-    // 挖矿奖励数量
+    // reward of mining
     private static final int SUBSIDY = 10;
-    // 交易的hash
+    // transaction's hash
     private byte[] txId;
-    // 交易的输入
+    // transaction's inputs
     private TXInput[] inputs;
-    // 交易的输出
+    // transaction's outputs
     private TXOutput[] outputs;
 
     /**
-     * 计算交易信息的Hash值
+     * calculate the hash value of transaction
      * @return
      */
     public byte[] hash() {
@@ -55,7 +55,7 @@ public class Transaction implements Serializable{
         return DigestUtils.sha256(SerializeUtils.serializer(copyTx));
     }
     /**
-     * 创建coinbase交易
+     * create coinbase transaction
      * @param to 收账的钱包地址
      * @param data 解锁脚本数据
      * @return
@@ -64,13 +64,13 @@ public class Transaction implements Serializable{
         if (StringUtils.isBlank(data)){
             data = String.format("Reward to '%s'",to);
         }
-        // 创建交易输入
+        // create input
         TXInput txInput = new TXInput(new byte[]{},-1,null,data.getBytes());
-        // 创建交易输出
+        // create output
         TXOutput txOutput = TXOutput.newTxOutput(SUBSIDY,to);
-        // 创建交易
+        // create transaction
         Transaction tx = new Transaction(null,new TXInput[]{txInput},new TXOutput[]{txOutput});
-        // 设置交易ID
+        // set transaction ID
         tx.setTxId(tx.hash());
         return tx;
     }
@@ -152,17 +152,17 @@ public class Transaction implements Serializable{
      * 签名
      */
     public void sign(BCECPrivateKey privateKey,Map<String,Transaction> prevTxMap) throws Exception {
-        // coinbase交易信息不需要签名，因为它不存在交易输入信息
+        // coinbase dose not need to sign.Because it does not contain any transactions
         if (this.isCoinbase()){
             return;
         }
-        // 再次验证交易信息中交易输入是否正确，也就是能否查找对应的交易数据
+        // verify the input is correct
         for (TXInput txInput: this.getInputs()) {
             if (prevTxMap.get(Hex.encodeHexString(txInput.getTxId())) == null){
                 throw new Exception("Error: Previous transactions are not correct");
             }
         }
-        // 创建用于签名的交易信息的副本
+        // create a copy of transaction to sign
         Transaction txCopy = this.trimmedCopy();
 
         Security.addProvider(new BouncyCastleProvider());
@@ -171,9 +171,9 @@ public class Transaction implements Serializable{
 
         for (int i = 0;i < txCopy.getInputs().length;i++){
             TXInput txInputCopy = txCopy.getInputs()[i];
-            // 获取交易输入txId对应的交易数据
+            // 获取交易输入txId对应的交易数据 get the transaction of the this input
             Transaction prevTx = prevTxMap.get(Hex.encodeHexString(txInputCopy.getTxId()));
-            // 获取交易输入所对应的上一笔交易的交易输出
+            // 获取交易输入所对应的上一笔交易的交易输出 get the output of previous transaction
             TXOutput prevTxOutput = prevTx.getOutputs()[txInputCopy.getTxOutputIndex()];
             txInputCopy.setPubKey(prevTxOutput.getPubKeyHash());
             txInputCopy.setSignature(null);

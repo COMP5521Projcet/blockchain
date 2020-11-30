@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public class P2PServer {
-    //所有服务端的WebSocket
+    //all websockets
     private List<WebSocket> sockets = new ArrayList<WebSocket>();
 
     public List<WebSocket> getSockets() {
@@ -21,21 +21,14 @@ public class P2PServer {
     }
 
     /**
-     * 初始化P2P Server端
+     * init P2P Server
      *
-     * @param port :Server端的端口号
      */
     public void initServer(int port) {
         /**
-         * 创建有一个WebSocket的服务端
-         * 定义了一个WebSocketServer的匿名子类对象socketServer
-         * new InetSocketAddress(port)是WebSocketServer构造器的参数
-         * InetSocketAddress是(IP地址+端口号)类型，也就是端口地址类型
+         * create a WebSocket server
          */
         final WebSocketServer socketServer = new WebSocketServer(new InetSocketAddress(port)) {
-            /**
-             * 重写5个事件方法，事件发生时触发该方法
-             */
 
             @Override
             public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {//创建连接成功时触发
@@ -68,6 +61,18 @@ public class P2PServer {
                 }
             }
 
+            /**
+             * Receive block byte
+             */
+            @Override
+            public void onMessage(WebSocket conn, ByteBuffer message) {
+                byte[] bytes1 = message.array();
+                Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
+                RocksDBUtils.getInstance().setBlockBucket(blockBucket);
+                RocksDBUtils.getInstance().updateChain();
+                System.out.println("Update Successfully!");
+                System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
+            }
 
             @Override
             public void onError(WebSocket webSocket, Exception e) {//连接发生错误的时候调用,紧接着触发onClose方法
@@ -108,11 +113,11 @@ public class P2PServer {
         if (sockets.size() == 0) {
             return;
         }
-        System.out.println("======广播消息开始：");
+        System.out.println("======broadcast start：");
         for (WebSocket socket : sockets) {
             this.write(socket, message);
         }
-        System.out.println("======广播消息结束");
+        System.out.println("======broadcast end");
     }
 
 }

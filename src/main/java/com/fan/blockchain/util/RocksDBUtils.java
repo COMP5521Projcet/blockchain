@@ -14,16 +14,16 @@ import java.util.Map;
 
 
 /**
- * RocksDB 工具类
+ * RocksDB tool class
  */
 public class RocksDBUtils {
-    // 区块链数据文件
+    // blockchain database file
     private static final String DB_FILE = "blockchain.db";
-    // 区块桶前缀
+    // block bucket prefix
     private static final String BLOCKS_BUCKET_KEY = "blocks";
-    // 链状态桶
+    // chain state bucket prefix
     private static final String CHAINSTATE_BUCKET_KEY = "chainstate";
-    // 最新一个区块
+    // latest block key
     private static final String LAST_BLOCK_KEY = "l";
     private volatile static RocksDBUtils instance;
     @Getter
@@ -52,7 +52,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 打开数据库
+     * open database
      */
     private void openDB() {
         try {
@@ -63,7 +63,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 初始化 blocks 数据桶: 存储区块数据
+     * initialize blocks bucket: store block data
      */
     private void initRocksDB() {
         try {
@@ -80,7 +80,7 @@ public class RocksDBUtils {
         }
     }
     /**
-     * 初始化 chainstate 数据桶: 存储交易数据
+     * initialize chainstate bucket: store transaction data
      */
     private void initChainStateBucket() {
         try {
@@ -98,7 +98,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 获取最新的一个区块
+     * get latest block
      */
     public Block getLastBlock() {
         String lastBlockHash = getLastBlockHash();
@@ -112,7 +112,7 @@ public class RocksDBUtils {
         return lastBlock;
     }
     /**
-     * 获取当前区块链的高度
+     * get the height of latest block
      */
     public int getCurrentHeight(){
         String lastBlockHash = getLastBlockHash();
@@ -122,7 +122,7 @@ public class RocksDBUtils {
         return getBlock(lastBlockHash).getHeight();
     }
     /**
-     * 保存最新一个区块的hash
+     * save the hash of latest block
      */
     public void putLastBlockHash(String tipBlockHash) {
         try {
@@ -134,7 +134,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 查询最新一个区块的hash
+     * get the hash of the latest block
      */
     public String getLastBlockHash() {
         byte[] lastBlockHashBytes = blockBucket.get(LAST_BLOCK_KEY);
@@ -145,7 +145,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 保存区块
+     * save block
      */
     public void putBlock(Block block)  {
         try {
@@ -157,7 +157,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 更新链
+     * update blockchain
      */
 
     public void updateChain()  {
@@ -169,7 +169,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 查询区块
+     * get block information by hash
      */
     public Block getBlock(String blockHash) {
         byte[] blockBytes = blockBucket.get(blockHash);
@@ -179,7 +179,7 @@ public class RocksDBUtils {
         return null;
     }
     /**
-     * 清空chainstate bucket
+     * clear chainstate bucket
      */
     public void cleanChianstateBucket(){
         try {
@@ -189,7 +189,7 @@ public class RocksDBUtils {
         }
     }
     /**
-     * 保存UTXO数据
+     * save UTXO
      */
     public void putUTXOs(String key, TXOutput[] utxos){
         try {
@@ -201,7 +201,7 @@ public class RocksDBUtils {
     }
 
     /**
-     *查询UTXO数据
+     *query UTXO
      */
     public TXOutput[] getUTXOs(String key) {
         byte[] utxosByte = chainstateBucket.get(key);
@@ -211,7 +211,7 @@ public class RocksDBUtils {
         return null;
     }
     /**
-     * 删除UTXO数据
+     * delete UTXO
      */
     public void deleteUTXOs(String key) {
         try {
@@ -223,7 +223,7 @@ public class RocksDBUtils {
     }
 
     /**
-     * 关闭数据库
+     * close database
      */
     public void closeDB() {
         try {

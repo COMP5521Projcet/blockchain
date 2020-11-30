@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 public class P2PClient {
-    //所有客户端WebSocket的连接池
+    //client WebSocket pool
     private List<WebSocket> sockets = new ArrayList<WebSocket>();
 
     public List<WebSocket> getSockets() {
@@ -22,7 +22,7 @@ public class P2PClient {
     }
 
     /**
-     * 连接到peer
+     * conncet to peer
      */
     public void connectPeer(String peer) {
         try {
@@ -32,7 +32,7 @@ public class P2PClient {
              * A subclass must implement onOpen, onClose, and onMessage to be useful.
              * An instance can send messages to it's connected server via the send method.
              *
-             * 创建有一个WebSocket的客户端
+             * create a WebSocket client
              */
             final WebSocketClient socketClient = new WebSocketClient(new URI(peer)) {
                 @Override
@@ -49,6 +49,11 @@ public class P2PClient {
                         int height = Integer.parseInt(msg.substring(index + 3));
                         if (RocksDBUtils.getInstance().getCurrentHeight() < height){
                             System.out.println("Begin update blockchain......");
+                        } else if (RocksDBUtils.getInstance().getCurrentHeight() == height){
+                            System.out.println("Blockchains are same!");
+                        } else {
+                            System.out.println("Send my blockchain to " + this.getRemoteSocketAddress().getPort());
+                            sendBlockchain(this,RocksDBUtils.getInstance().getBlockBucket());
                         }
                     }
                 }
@@ -82,8 +87,7 @@ public class P2PClient {
         }
     }
     /**
-     * 向服务端发送消息
-     * 当前WebSocket的远程Socket地址，就是服务器端
+     * send message to server
      * @param ws：
      * @param message
      */
@@ -91,18 +95,21 @@ public class P2PClient {
         System.out.println("Send msg to" + ws.getRemoteSocketAddress().getPort() + ": " + message);
         ws.send(message);
     }
+    public void sendBlockchain(WebSocket ws, Map<String,byte[]> blockBucket){
+        ws.send(SerializeUtils.serializer(blockBucket));
+    }
     /**
-     * 向所有服务端广播消息
+     * broadcast to all server
      * @param message
      */
     public void broatcast(String message) {
         if (sockets.size() == 0) {
             return;
         }
-        System.out.println("======广播消息开始：");
+        System.out.println("======broadcast start：");
         for (WebSocket socket : sockets) {
             this.write(socket, message);
         }
-        System.out.println("======广播消息结束");
+        System.out.println("======broadcast end");
     }
 }
