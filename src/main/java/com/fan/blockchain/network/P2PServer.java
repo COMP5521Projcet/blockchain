@@ -5,6 +5,7 @@ import com.fan.blockchain.util.SerializeUtils;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.rocksdb.RocksDB;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -69,7 +70,7 @@ public class P2PServer {
                 byte[] bytes1 = message.array();
                 Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
                 RocksDBUtils.getInstance().setBlockBucket(blockBucket);
-                RocksDBUtils.getInstance().updateChain();
+//                RocksDBUtils.getInstance().updateChain();
                 System.out.println("Update Successfully!");
                 System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
             }
@@ -86,7 +87,7 @@ public class P2PServer {
             }
         };
         socketServer.start();
-        System.out.println("socketServer is listening at: " + port);
+        System.out.println("SocketServer is listening at: " + port);
     }
 
     /**

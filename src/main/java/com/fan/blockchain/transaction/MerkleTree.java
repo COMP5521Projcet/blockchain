@@ -10,9 +10,9 @@ import java.util.List;
 
 @Data
 public class MerkleTree {
-    // 根节点
+    // root node
     private Node root;
-    // 叶子节点
+    // leafnode
     private byte[][] leafHashes;
 
     public MerkleTree(byte[][] leafHashes) {
@@ -31,7 +31,7 @@ public class MerkleTree {
         root = parents.get(0);
     }
     /**
-     * 构建一个层级节点
+     * construct nodes in one level
      */
     private List<Node> internalLevel(List<Node> children){
         ArrayList<Node> parents = Lists.newArrayListWithCapacity(children.size() / 2);
@@ -49,7 +49,7 @@ public class MerkleTree {
         return parents;
     }
     /**
-     * 底部节点构建
+     * construct bottom nodes
      */
     private List<Node> bottomLevel(byte[][] hashes){
         ArrayList<Node> parents = Lists.newArrayListWithCapacity(hashes.length / 2);

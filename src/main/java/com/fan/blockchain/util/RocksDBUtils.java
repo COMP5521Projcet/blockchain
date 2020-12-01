@@ -232,5 +232,21 @@ public class RocksDBUtils {
             throw new RuntimeException("Fail to close db!",e);
         }
     }
+    /**
+     * check
+     */
+    public void updateBlockBucket(){
+        try {
+            if (instance.getBlockBucket() != SerializeUtils.deserializer(instance.getDb().get(SerializeUtils.serializer(BLOCKS_BUCKET_KEY)),Map.class)){
+                try {
+                    instance.getDb().put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY),SerializeUtils.serializer(instance.getBlockBucket()));
+                } catch (RocksDBException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

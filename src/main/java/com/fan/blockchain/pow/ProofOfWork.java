@@ -33,6 +33,7 @@ public class ProofOfWork {
         long nonce = 0;
         String shaHex = "";
         long startTime = System.currentTimeMillis();
+        System.out.println("Start mining......");
         while (nonce < Long.MAX_VALUE){
             byte[] data = this.prepareData(nonce);
             shaHex = DigestUtils.sha256Hex(data);

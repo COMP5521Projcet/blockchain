@@ -1,10 +1,14 @@
 package com.fan.blockchain.network;
 
+import com.fan.blockchain.block.Block;
+import com.fan.blockchain.block.Blockchain;
+import com.fan.blockchain.pow.ProofOfWork;
 import com.fan.blockchain.util.RocksDBUtils;
 import com.fan.blockchain.util.SerializeUtils;
 import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.rocksdb.RocksDB;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -53,19 +57,32 @@ public class P2PClient {
                             System.out.println("Blockchains are same!");
                         } else {
                             System.out.println("Send my blockchain to " + this.getRemoteSocketAddress().getPort());
-                            sendBlockchain(this,RocksDBUtils.getInstance().getBlockBucket());
+                            sendBlockchain(this,RocksDBUtils.getInstance().getDb());
                         }
                     }
                 }
-
                 @Override
                 public void onMessage(ByteBuffer bytes) {
                     byte[] bytes1 = bytes.array();
                     Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
                     RocksDBUtils.getInstance().setBlockBucket(blockBucket);
-                    RocksDBUtils.getInstance().updateChain();
+//                    RocksDBUtils.getInstance().updateChain();
                     System.out.println("Update Successfully!");
                     System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
+                    System.out.println("======print my blockchain now======");
+                    Blockchain blockchain = null;
+                    try {
+                        blockchain = Blockchain.initBlockchainFromDB();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    for (Blockchain.BlockchainIterator iterator = blockchain.getBlockchainIterator(); iterator.hashNext();){
+                        Block block = iterator.next();
+                        if (block != null){
+                            boolean validate = ProofOfWork.newProofOfWork(block).validate();
+                            System.out.println(block.toString() + ", validate = " + validate);
+                        }
+                    }
                 }
 
                 @Override
@@ -92,11 +109,11 @@ public class P2PClient {
      * @param message
      */
     public void write(WebSocket ws, String message) {
-        System.out.println("Send msg to" + ws.getRemoteSocketAddress().getPort() + ": " + message);
+        System.out.println("Send msg to " + ws.getRemoteSocketAddress().getPort() + ": " + message);
         ws.send(message);
     }
-    public void sendBlockchain(WebSocket ws, Map<String,byte[]> blockBucket){
-        ws.send(SerializeUtils.serializer(blockBucket));
+    public void sendBlockchain(WebSocket ws, RocksDB db){
+        ws.send(SerializeUtils.serializer(db));
     }
     /**
      * broadcast to all server
