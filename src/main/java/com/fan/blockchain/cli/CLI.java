@@ -55,6 +55,13 @@ public class CLI {
             CommandLineParser parser = new DefaultParser();
             CommandLine cmd = parser.parse(options,args);
             switch (args[0]) {
+                case "mine":
+                    String to = cmd.getOptionValue("to");
+                    if (StringUtils.isBlank(to)){
+                        help();
+                    }
+                    this.mine(to);
+                    break;
                 case "createblockchain":
                     String createblockchainAddress = cmd.getOptionValue("address");
                     if (StringUtils.isBlank(createblockchainAddress)){
@@ -125,6 +132,7 @@ public class CLI {
         System.out.println("  getbalance -address ADDRESS - Get balance of ADDRESS");
         System.out.println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS");
         System.out.println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO");
+        System.out.println("  mine -to TO the address reward goes to");
         System.exit(0);
     }
 
@@ -198,10 +206,24 @@ public class CLI {
         // reward
         Transaction rewardTx = Transaction.newCoinbaseTX(from,"");
         Block newBlock = blockchain.mineBlock(new Transaction[]{transaction,rewardTx});
+        //new UTXOSet(blockchain).update(newBlock);
+        UTXOSet utxoSet = new UTXOSet(blockchain);
+        utxoSet.update(newBlock);
+        utxoSet.reIndex();
+        RocksDBUtils.getInstance().closeDB();
+        System.out.println("Success!");
+    }
+
+    private void mine(String to) throws Exception {
+        Transaction rewardTx = Transaction.newCoinbaseTX(to,Long.toString(System.currentTimeMillis()));
+        Blockchain blockchain = Blockchain.initBlockchainFromDB();
+        Block newBlock = blockchain.mineBlock(new Transaction[]{rewardTx});
         new UTXOSet(blockchain).update(newBlock);
         RocksDBUtils.getInstance().closeDB();
         System.out.println("Success!");
     }
+
+
 
     private void printChain() throws Exception {
         Blockchain blockchain = Blockchain.initBlockchainFromDB();
