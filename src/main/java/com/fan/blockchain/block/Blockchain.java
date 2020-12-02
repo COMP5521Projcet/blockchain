@@ -75,6 +75,7 @@ public class Blockchain {
     }
 
     public void addBlock(Block block) throws RocksDBException {
+
         RocksDBUtils.getInstance().putLastBlockHash(block.getHash());
         RocksDBUtils.getInstance().putBlock(block);
         this.lastBlockHash = block.getHash();
