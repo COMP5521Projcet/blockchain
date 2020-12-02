@@ -10,8 +10,7 @@ import java.io.IOException;
  */
 public class Main {
     public static void main(String[] args) throws IOException {
-        String[] args1 = {"createblockchain","-address","17WmedeiY3Uv42XTWFSMmKjdvcnhyZPnPu"};
-        CLI cli = new CLI(args1);
+        CLI cli = new CLI(args);
         cli.parse();
     }
 }

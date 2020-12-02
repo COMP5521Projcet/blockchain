@@ -164,24 +164,21 @@ public class Transaction implements Serializable{
         }
         // create a copy of transaction to sign
         Transaction txCopy = this.trimmedCopy();
-
         Security.addProvider(new BouncyCastleProvider());
         Signature ecdsaSign = Signature.getInstance("SHA256withECDSA", BouncyCastleProvider.PROVIDER_NAME);
         ecdsaSign.initSign(privateKey);
-
         for (int i = 0;i < txCopy.getInputs().length;i++){
             TXInput txInputCopy = txCopy.getInputs()[i];
-            // 获取交易输入txId对应的交易数据 get the transaction of the this input
+            // get the transaction of the this input
             Transaction prevTx = prevTxMap.get(Hex.encodeHexString(txInputCopy.getTxId()));
-            // 获取交易输入所对应的上一笔交易的交易输出 get the output of previous transaction
+            // get the output of previous transaction
             TXOutput prevTxOutput = prevTx.getOutputs()[txInputCopy.getTxOutputIndex()];
             txInputCopy.setPubKey(prevTxOutput.getPubKeyHash());
             txInputCopy.setSignature(null);
-            // 得到要签名的数据 即交易ID
+            // get transaction ID
             txCopy.setTxId(txCopy.hash());
-            // 重置pubKey，以免影响后面的迭代
+            // reset pubKey
             txInputCopy.setPubKey(null);
-
             ecdsaSign.update(txCopy.getTxId());
             byte[] signature = ecdsaSign.sign();
             this.getInputs()[i].setSignature(signature);
