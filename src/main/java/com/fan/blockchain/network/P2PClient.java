@@ -65,14 +65,16 @@ public class P2PClient {
                 public void onMessage(ByteBuffer bytes) {
                     byte[] bytes1 = bytes.array();
                     Block block1  = SerializeUtils.deserializer(bytes1, Block.class);
-                    System.out.printlin(("received block: "+block1);
-                    RocksDBUtils.getInstance().putBlock(block1);
+                    System.out.println("received block: "+block1);
+                    RocksDBUtils.getInstance().pushBlock(block1);
    //                 Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
      //               RocksDBUtils.getInstance().setBlockBucket(blockBucket);
 //                    RocksDBUtils.getInstance().updateChain();
                     System.out.println("Update Successfully!");
-                    System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
-                    write(this, "My block height is " + RocksDBUtils.getInstance().getCurrentHeight());
+                    //System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
+                    //write(this, "My block height is " + RocksDBUtils.getInstance().getCurrentHeight());
+                    System.out.println("My current height is " + block1.getHeight());
+                    write(this, "My block height is " + block1.getHeight());
                     System.out.println("======print my blockchain now======");
                     Blockchain blockchain = null;
                     try {
@@ -118,7 +120,7 @@ public class P2PClient {
     }
     public void sendBlockchain(WebSocket ws, Block block){
 
-        System.out.printlin(("send block: "+block1);
+        System.out.println("send block: "+block);
         ws.send(SerializeUtils.serializer(block));
     }
     /**

@@ -150,10 +150,14 @@ public class RocksDBUtils {
     public void putBlock(Block block)  {
         try {
             blockBucket.put(block.getHash(), SerializeUtils.serializer(block));
-            //db.put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY), SerializeUtils.serializer(blockBucket));
+            db.put(SerializeUtils.serializer(BLOCKS_BUCKET_KEY), SerializeUtils.serializer(blockBucket));
         } catch (RocksDBException e) {
             e.printStackTrace();
         }
+    }
+
+    public void pushBlock(Block block)  {
+        blockBucket.put(block.getHash(), SerializeUtils.serializer(block));
     }
 
     /**
