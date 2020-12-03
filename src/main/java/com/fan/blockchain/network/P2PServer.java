@@ -70,6 +70,7 @@ public class P2PServer {
             public void onMessage(WebSocket conn, ByteBuffer message) {
                 byte[] bytes1 = message.array();
                 Block block  = SerializeUtils.deserializer(bytes1, Block.class);
+                System.out.printlin(("received block: "+block1);
                 RocksDBUtils.getInstance().putBlock(block);
                 //RocksDBUtils.getInstance().getBlockByHeight(height);
 //                RocksDBUtils.getInstance().updateChain();
@@ -105,6 +106,7 @@ public class P2PServer {
     }
 
     public void sendBlockchain(WebSocket ws, Block block){
+        System.out.printlin(("send block: "+block1);
         ws.send(SerializeUtils.serializer(block));
     }
 

@@ -65,6 +65,7 @@ public class P2PClient {
                 public void onMessage(ByteBuffer bytes) {
                     byte[] bytes1 = bytes.array();
                     Block block1  = SerializeUtils.deserializer(bytes1, Block.class);
+                    System.out.printlin(("received block: "+block1);
                     RocksDBUtils.getInstance().putBlock(block1);
    //                 Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
      //               RocksDBUtils.getInstance().setBlockBucket(blockBucket);
@@ -116,6 +117,8 @@ public class P2PClient {
         ws.send(message);
     }
     public void sendBlockchain(WebSocket ws, Block block){
+
+        System.out.printlin(("send block: "+block1);
         ws.send(SerializeUtils.serializer(block));
     }
     /**
