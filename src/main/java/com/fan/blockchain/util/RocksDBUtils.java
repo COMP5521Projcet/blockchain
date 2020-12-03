@@ -178,6 +178,21 @@ public class RocksDBUtils {
         }
         return null;
     }
+    public Block getBlockByHeight(int height){
+        Block block = this.getLastBlock();
+        if(block.getHeight() < height){
+            return null;
+        }
+        while (block != null) {
+            if (block.getHeight() == height) {
+                    return block;
+                }else{
+                    block = this.getBlock(block.getPreviousHash());
+                }
+
+        }
+        return null;
+    }
     /**
      * clear chainstate bucket
      */

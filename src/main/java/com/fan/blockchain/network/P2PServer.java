@@ -1,5 +1,6 @@
 package com.fan.blockchain.network;
 
+import com.fan.blockchain.block.Block;
 import com.fan.blockchain.util.RocksDBUtils;
 import com.fan.blockchain.util.SerializeUtils;
 import org.java_websocket.WebSocket;
@@ -57,7 +58,7 @@ public class P2PServer {
                         System.out.println("Blockchains are same!");
                     } else {
                         System.out.println("Send my blockchain to " + webSocket.getRemoteSocketAddress().getPort());
-                        sendBlockchain(webSocket,RocksDBUtils.getInstance().getBlockBucket());
+                        sendBlockchain(webSocket,RocksDBUtils.getInstance().getBlockByHeight(height+1));
                     }
                 }
             }
@@ -68,11 +69,13 @@ public class P2PServer {
             @Override
             public void onMessage(WebSocket conn, ByteBuffer message) {
                 byte[] bytes1 = message.array();
-                Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
-                RocksDBUtils.getInstance().setBlockBucket(blockBucket);
+                Block block  = SerializeUtils.deserializer(bytes1, Block.class);
+                RocksDBUtils.getInstance().putBlock(block);
+                //RocksDBUtils.getInstance().getBlockByHeight(height);
 //                RocksDBUtils.getInstance().updateChain();
                 System.out.println("Update Successfully!");
                 System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
+                write(conn, "My block height is " + RocksDBUtils.getInstance().getCurrentHeight());
             }
 
             @Override
@@ -101,8 +104,8 @@ public class P2PServer {
         ws.send(message);
     }
 
-    public void sendBlockchain(WebSocket ws, Map<String,byte[]> blockBucket){
-        ws.send(SerializeUtils.serializer(blockBucket));
+    public void sendBlockchain(WebSocket ws, Block block){
+        ws.send(SerializeUtils.serializer(block));
     }
 
     /**

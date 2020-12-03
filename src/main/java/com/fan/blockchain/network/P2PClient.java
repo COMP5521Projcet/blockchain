@@ -57,18 +57,21 @@ public class P2PClient {
                             System.out.println("Blockchains are same!");
                         } else {
                             System.out.println("Send my blockchain to " + this.getRemoteSocketAddress().getPort());
-                            sendBlockchain(this,RocksDBUtils.getInstance().getDb());
+                            sendBlockchain(this,RocksDBUtils.getInstance().getBlockByHeight(height+1));
                         }
                     }
                 }
                 @Override
                 public void onMessage(ByteBuffer bytes) {
                     byte[] bytes1 = bytes.array();
-                    Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
-                    RocksDBUtils.getInstance().setBlockBucket(blockBucket);
+                    Block block1  = SerializeUtils.deserializer(bytes1, Block.class);
+                    RocksDBUtils.getInstance().putBlock(block1);
+   //                 Map<String,byte[]> blockBucket  = SerializeUtils.deserializer(bytes1, Map.class);
+     //               RocksDBUtils.getInstance().setBlockBucket(blockBucket);
 //                    RocksDBUtils.getInstance().updateChain();
                     System.out.println("Update Successfully!");
                     System.out.println("My current height is " + RocksDBUtils.getInstance().getCurrentHeight());
+                    write(this, "My block height is " + RocksDBUtils.getInstance().getCurrentHeight());
                     System.out.println("======print my blockchain now======");
                     Blockchain blockchain = null;
                     try {
@@ -112,8 +115,8 @@ public class P2PClient {
         System.out.println("Send msg to " + ws.getRemoteSocketAddress().getPort() + ": " + message);
         ws.send(message);
     }
-    public void sendBlockchain(WebSocket ws, RocksDB db){
-        ws.send(SerializeUtils.serializer(db));
+    public void sendBlockchain(WebSocket ws, Block block){
+        ws.send(SerializeUtils.serializer(block));
     }
     /**
      * broadcast to all server
