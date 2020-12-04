@@ -125,14 +125,14 @@ public class CLI {
 
     private void help() {
         System.out.println("Usage:");
-        System.out.println("  communication -port PORT -host HOST - Communication with other nodes in the same p2p network");
         System.out.println("  createwallet - Generates a new key-pair and saves it into the wallet file");
         System.out.println("  printaddresses - print all wallet address");
-        System.out.println("  printchain - print the whole blockchain");
         System.out.println("  getbalance -address ADDRESS - Get balance of ADDRESS");
         System.out.println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS");
         System.out.println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO");
-        System.out.println("  mine -to TO the address reward goes to");
+        System.out.println("  mine -to ADDRESS start mining and send reward to ADDRESS");
+        System.out.println("  printchain - print the whole blockchain");
+        System.out.println("  communication -port PORT -host HOST - Communication with other nodes in the same p2p network");
         System.exit(0);
     }
 
